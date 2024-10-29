@@ -156,7 +156,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         schedules = schedule_collection.find({"chat_id": user_id})
         user_schedules = list(schedules)
         if user_schedules:
-            schedule_details = "\n".join([f"Tablet: {schedule['tablet_name']}, Time: {schedule['reminder_time']}, Duration: {schedule['duration']} hours, Disease : {schedule['disease']}" for schedule in user_schedules])
+            schedule_details = "\n".join([f"Tablet: {schedule['tablet_name']}, Time: {schedule['reminder_time']}, Duration: {schedule['duration']} days, Disease : {schedule['disease']}" for schedule in user_schedules])
             await query.edit_message_text(f"📅 Here’s a look at your ongoing schedules! Let’s keep you on track with everything you need!\n{schedule_details}")
         else:
             await query.edit_message_text("No ongoing schedules found. Do you want to schedule a new one?")
@@ -169,7 +169,6 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             [InlineKeyboardButton("Update prescription", callback_data='modify_prescription')],
             [InlineKeyboardButton("Diet plan 😋", callback_data='create_deit')],
             [InlineKeyboardButton("Exercise options 💪", callback_data='excercise_plan')],
-            [InlineKeyboardButton("Both 💪😋", callback_data='both1')],
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await query.message.reply_text("Updation on ongoing schedules", reply_markup=reply_markup)
@@ -238,7 +237,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await update.message.reply_text("Please enter the new reminder time (in HH:MM format):")
             elif text.lower() == 'duration':
                 USER_UPDATE_STATE[user_id] = {'state': 'new_duration', 'tablet_name': update_state['tablet_name']}
-                await update.message.reply_text("Please enter the new duration (in hours):")
+                await update.message.reply_text("Please enter the new duration (in days):")
             else:
                 await update.message.reply_text("Invalid choice. Please reply with 'time' or 'duration'.")
             return
@@ -261,7 +260,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 {'tablet_name': update_state['tablet_name'], 'chat_id': user_id},
                 {'$set': {'duration': new_duration}}
             )
-            await update.message.reply_text(f"Updated the duration for {update_state['tablet_name']} to {new_duration} hours.")
+            await update.message.reply_text(f"Updated the duration for {update_state['tablet_name']} to {new_duration} days.")
             USER_UPDATE_STATE.pop(user_id)  # Clear state
             return
 
@@ -309,7 +308,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 USER_SCHEDULE_STATE[user_id] = {'state': 'disease', 'tablet_name': schedule_state['tablet_name'], 'reminder_time': schedule_state['reminder_time'], 'duration': duration}
                 await update.message.reply_text("Please enter the disease or condition this tablet is for:")
             except ValueError:
-                await update.message.reply_text("Please enter a valid number for the duration (e.g., 1 or 1.5 for 1 hour or 1 hour 30 minutes).")
+                await update.message.reply_text("Please enter a valid number for the duration (e.g., 1 or 1.5 for 1 day).")
             return
 
         elif schedule_state['state'] == 'disease':
@@ -331,7 +330,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             keyboard = [
                 [InlineKeyboardButton("Diet Plans", callback_data='create_deit')],
                 [InlineKeyboardButton("Exercise Options", callback_data='exercise_options')],
-                [InlineKeyboardButton("Both", callback_data='both')],
                 [InlineKeyboardButton("None", callback_data='none')]
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
